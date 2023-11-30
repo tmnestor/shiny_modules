@@ -1,0 +1,522 @@
+---
+title: "Shiny Modules"
+subtitle: "Just the Basics"
+author: "Tod Nestor"
+date: "2023-12-01"
+project:
+  type: website
+  output-dir: docs
+# format:
+#   revealjs:
+#     theme: night
+#     chalkboard: true
+#     footer: "HDI CoP Presentation"
+#     incremental: true
+#   html:
+#     code-line-numbers: true
+# editor_options:
+#   chunk_output_type: inline
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+suppressPackageStartupMessages(library(tidyverse))
+
+
+# Package names
+packages <- c("tidyverse", "shiny", "lobstr", "zeallot")
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+# Loaded Packages
+invisible(purrr::map(packages, require, character = TRUE))
+setwd("~/Desktop/shiny_modules_presentation") #DELETE THIS ABOMINATION!
+```
+
+## Shiny Modules
+![](https://imgs.xkcd.com/comics/simple_answers.png){fig-align=center width=20%}
+
+<br>_Presentation Slides: https://tmnestor.github.io/shiny_modules/CoP_modules_pres.html_</br>
+
+## Why this presentation?
+
+- The Context: Working in a team on a complex  _Shiny App_ and struggling to understand the architecture.
+- Team Meeting Suggestion: Decompose into distinct **Modules**
+  - _see_ [Engineering Production-Grade Shiny Apps](https://engineering-shiny.org/). 
+- Consequence: Give a Presentation.
+
+## What are Shiny Modules?
+
+![](figures/Modules1.png){width=70% fig-align=center}
+
+ - left: a **Typical Application Architecture**
+ - middle: a **Module**.
+ - right: a **Modularised Application**.
+
+
+## Why Shiny Modules? (1 of 2)
+
+- Modules make it easier to develop a complex App because each module can be 
+  - developed, 
+  - tested, 
+  - and integrated independently.
+- Modules increase **cohesion** whilst reducing **coupling**, so are easier to
+  - understand,
+  - and maintain.
+
+## Why Shiny Modules? (2 of 2)
+
+<br/><br/>
+
+  - _Coupling_ between units of code refers to the _inter-connectedness_ between them! 
+  - _Cohesion_ of a unit of code refers to the degree to which elements within a component work together to fulfill a single, well-defined purpose.
+
+## A Monolithic Shiny App {background-color="indigo"}
+
+```{.r code-line-numbers="|4-6|10-13"}
+library(shiny)
+
+ui <- fluidPage(
+  selectInput(inputId = "var", "Variable", names(mtcars)),
+  numericInput(inputId = "bins", "bins", min = 1, max = 20, value = 10),
+  plotOutput(outputId = "hist")
+)
+
+server <- function(input, output, session) {
+  data <- reactive(mtcars[[input$var]])
+  output$hist <- renderPlot({
+    hist(data(), breaks = input$bins, main = input$var)
+  }, res = 96)
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+
+## Modularized UI {auto-animate="true"}
+The Main UI function
+```{.r  code-line-numbers="2-4"}
+ui <- fluidPage(
+  selectInput("var", "Variable", names(mtcars)),
+  numericInput("bins", "bins", min = 1, max = 20, value = 10),
+  plotOutput("hist")
+)
+```
+## Modularized UI {auto-animate="true"}
+Is replaced by
+```{.r code-line-numbers="2"}
+ui <- fluidPage(
+  MTCars_Histo_UI("cars")
+)
+```
+
+## The UI Module {background-color="orange"}
+
+```{.r code-line-numbers="|2|4,8|5-7"}
+MTCars_Histo_UI <- function(id) {
+  ns <- NS(id)
+  # enter code to contruct and monitor UI control
+  tagList(
+  selectInput(ns("var"), "Variable", names(mtcars)),
+  numericInput(ns("bins"), "bins", min = 1, max = 20, value = 10),
+  plotOutput(ns("hist"))
+  )
+}
+```
+
+## Modularized Server {auto-animate="true"}
+The Main Server function
+```{.r code-line-numbers="2-5"}
+server <- function(input, output, session) {
+  data <- reactive(mtcars[[input$var]])
+  output$hist <- renderPlot({
+    hist(data(), breaks = input$bins, main = input$var)
+  }, res = 96)
+}
+```
+## Modularized Server {auto-animate=true}
+Is replaced by
+```{.r code-line-numbers="2"}
+server <- function(input, output, session) {
+  MTCars_Histo_Server("cars")
+}
+```
+
+## The Server Module {background-color="orange"}
+The Server Module is
+```{.r code-line-numbers="1-4,10-12|5-9"}
+MTCars_Histo_Server <- function(id) {
+  moduleServer(
+    id,
+    module = function(input, output, session) {
+      # code to return a response when an associated UI control changes
+      data <- reactive(mtcars[[input$var]])
+      output$hist <- renderPlot({
+        hist(data(), breaks = input$bins, main = input$var)
+      }, res = 96)
+    }
+  )
+}
+```
+
+## The Modularized App  {background-color="indigo"}
+The Modularised App is now:
+
+```{.r code-line-numbers="6,10"}
+MTCars_Histo_App <- function() {
+  #source file with MTCars_Histo_UI and MTCars_Histo_Server components
+  source("mod-MTCars_Histo.R")
+  
+  ui <- fluidPage(
+    MTCars_Histo_UI("cars")
+  )
+  
+  server <- function(input, output, session) {
+    MTCars_Histo_Server("cars")
+  }
+  
+  shinyApp(ui = ui, server = server)
+}
+
+MTCars_Histo_App()
+```
+## Namespacing is crucial, and simple!
+
+```{r}
+ns <- shiny::NS("cars")
+ns("var")
+```
+
+::: {.callout-tip}
+## Name Space Dramas
+
+When UI controls don't work, check if you have name spaced their UI ids
+:::
+
+
+## Passing Information (1)
+
+
+![](figures/pass_info.png){width=30% fig-align=center}
+
+## Multi-Modular App (Functional)
+::: {.panel-tabset}
+## Main {background-color="#AF69EF"}
+
+```{.r code-line-numbers="4,7,8,12,13"}
+Multi_MTCars_Histo_App <- function() {
+lapply(c("shiny", "zeallot"), require, character.only = TRUE)
+list.files (path = "modules", full.name = TRUE) |> lapply(\(x) source(x))
+
+ui <- fluidPage(
+  dataUI("dat"),
+  plotUI("pl") 
+)
+
+server <- function(input, output, session) {
+  c(data, title) %<-% dataServer("dat")
+  plotServer("pl", data, title)
+}
+
+shinyApp(ui = ui, server = server)
+}
+Multi_MTCars_Histo_App()
+```
+
+- Thesis: understandability and maintainability is **_further_** enhanced.
+
+## Data {background-color="orange"}
+
+```{.r code-line-numbers="4|12-15"}
+dataUI <- function(id) {
+  ns <- NS(id)
+  tagList(
+    selectInput(inputId = ns("var"), "Variable", names(mtcars))
+  )
+}
+
+dataServer <- function(id) {
+  moduleServer(
+    id,
+    function(input, output, session) {
+      return(
+        list("data" = reactive(mtcars[[input$var]]), 
+             "title" = reactive(as.character(input$var)))
+      )
+    }
+  )
+}
+```
+
+## Plot {background-color="orange"}
+
+```{.r code-line-numbers="4-5|9|14-15|16"}
+plotUI <- function(id) {
+  ns <- NS(id)
+  tagList(
+    numericInput(inputId = ns("bins"), "bins", min = 1, max = 20, value = 10),
+    plotOutput(outputId = ns("hist"))
+  )
+}
+
+plotServer <- function(id, data, title) {
+  moduleServer(
+    id,
+    module = function(input, output, session) {
+      output$hist <- renderPlot({
+        hist(data(), #reactive from calling env
+             main = title(), #reactive from calling env
+             breaks = input$bins #reactive from UI
+        )
+      }, res = 96)
+    }
+  )
+}
+```
+:::
+
+
+## Passing Reactive Values Between Modules
+::: {.callout-important}
+## Passing Data
+- within a module’s server function, code must rely only on objects in its own UI or on objects that are explicitly passed into the that server function as additional arguments.
+- any objects created within a _producer module_ that are needed in another _consumer module_, must be returned as reactive expressions, captured by a variable assignment, and then passed into the consuming module, where they will be invoked as a function call.
+:::
+
+- _see_:
+  - [Communication between modules](https://shiny.posit.co/r/articles/improve/communicate-bet-modules/)
+  - [Using global input values inside of R Shiny modules](https://tbradley1013.github.io/2018/07/20/r-shiny-modules--using-global-inputs/)
+
+
+## R6 Encapsulated OO Method
+
+![](figures/Encapsulated_OOP.png){width=30% fig-align=center}
+
+- manage access to App data with reactive R6 classes
+  - _vid_.: [Pass around data between Shiny modules with R6](https://jiwanheo.rbind.io/post/2022-02-06-pass-around-data-between-shiny-modules-with-r6/)
+
+## Passing Variables (OO)
+::: {.panel-tabset}
+## Main
+```{r}
+#| eval: false
+#| code-line-numbers: "7|8|9"
+ui <- fluidPage(
+  dataUI("dat"),
+  plotUI("pl") 
+)
+
+server <- function(input, output, session) {
+  R6_data <- dataManager$new()
+  dataServer("dat", R6_data)
+  plotServer("pl", R6_data)
+}
+```
+
+## Manager
+```{r}
+#| eval: false
+#| code-line-numbers: "8-9|10-15|4|5-7"
+dataManager <- R6::R6Class(classname = "dataManager",
+  public = list(
+    triggers = reactiveValues(plot = 0),
+    trigger_plot = function(){
+      self$triggers$plot <- self$triggers$plot + 1},
+    set_x = function(x) {
+      private$x = as.character(x)},
+    set_data = function(data) {
+      private$data = as.numeric(data)},
+    get_x = function(x) {
+      private$x},
+    get_data = function(data) {
+      private$data}),
+  private = list (x = NULL,data = NULL)
+)
+```
+## Data
+```{r}
+#| eval: false
+#| code-line-numbers: "7|11|12-13|14"
+dataUI <- function(id) {
+  ns <- NS(id)
+  tagList(
+    selectInput(inputId = ns("var"), "Variable", names(mtcars))
+  )
+}
+dataServer <- function(id, dataManager) {
+  moduleServer(
+    id,
+    function(input, output, session) {
+      observeEvent(input$var, {
+      dataManager$set_data(mtcars[[input$var]])
+      dataManager$set_x(input$var)
+      dataManager$trigger_plot()
+      })
+    })}
+```
+
+## Plot
+```{r}
+#| eval: false
+#| code-line-numbers: "10|15"
+plotUI <- function(id) {
+  ns <- NS(id)
+  tagList(
+    numericInput(inputId = ns("bins"), "bins", min = 1, max = 20, value = 10),
+    plotOutput(outputId = ns("hist"))
+  )}
+plotServer <- function(id, dataManager) {
+  moduleServer(
+    id,
+    module = function(input, output, session) {
+      output$hist <- renderPlot({
+        dataManager$triggers$plot
+        hist(dataManager$get_data(), 
+             breaks = input$bins, 
+             main = dataManager$get_x())
+      }, res = 96)
+    })}
+```
+:::
+
+
+
+## Modular Testing
+
+::: {.panel-tabset}
+
+## Module
+
+```{r}
+#| eval: true
+# UI module ----
+bootstrap_ui <- function(id) {
+  fluidRow(
+    textOutput(NS(id, "bss"))
+  )
+}
+# server module ----
+bootstrap_server <- function(id, df) {
+  moduleServer(id, function(input, output, session) {
+    bss_mean <- reactive({as.character(mean(df()[["x"]]))})
+    output$bss <- renderText({
+      paste("The bootstrap sample mean is", bss_mean())
+    })
+  })
+}
+```
+
+## Test Harness
+
+```{r}
+#| eval: true
+test_demo <- function() {
+  boot_strap_sample <- data.frame(x = sample(x = 1:10, 
+                                             replace = TRUE, 
+                                             size  = 20))
+  ui <- fluidPage(bootstrap_ui("x"))
+  server <- function(input, output, session) {
+    session$onSessionEnded(stopApp)
+    bootstrap_server("x", reactive({boot_strap_sample}))
+  }
+  shinyApp(ui, server)
+}
+
+# test_demo()
+```
+:::
+
+## Presentation Summary
+ - Modules only realise their benefits at _scale_, where they make it easier to:
+    - develop and 
+    - maintain _complex_ Apps.
+ - However, **_Modular Apps_** create multiple **_name spaces_** and **_environments_**: 
+     - making it more challenging to pass information between the modules.
+        - _vid._ [A beginner's guide to Shiny modules](https://emilyriederer.netlify.app/post/shiny-modules/)
+
+## References
+
+ - [A beginner's guide to Shiny modules](https://emilyriederer.netlify.app/post/shiny-modules/)
+ - [Communication between modules](https://shiny.posit.co/r/articles/improve/communicate-bet-modules/)
+ - [Engineering Production-Grade Shiny Apps](https://engineering-shiny.org/)
+ - [Modularizing Shiny app code](https://shiny.posit.co/r/articles/improve/modules/)
+ - [Pass around data between Shiny modules with R6](https://jiwanheo.rbind.io/post/2022-02-06-pass-around-data-between-shiny-modules-with-r6/)
+ - [Presentation Slides](https://github.com/tmnestor/shiny_modules_presentation)
+ - [Shiny Modules](https://mastering-shiny.org/scaling-modules.html)
+ - [Using global input values inside of R Shiny modules](https://tbradley1013.github.io/2018/07/20/r-shiny-modules--using-global-inputs/)
+ 
+## Appendix A: A multi-module example
+
+```{r}
+#| include: false
+root = "~/Desktop/shiny_modules_presentation/"
+here = paste0(root, "src/flights_app_heirachical_tabs_event_driven")
+```
+
+```{r , warning=FALSE}
+#| eval: false
+setwd(here)
+source("./app5.R")
+shinyApp(ui, server)
+```
+
+## Appendix B:Functional
+::: {.panel-tabset}
+
+## App
+
+```{r}
+#| eval: false
+#| code-line-numbers: "3|4-5,12|7,14,15"
+ui <- fluidPage(
+  # Calling Environment
+  actionButton("submit", "Press me"),
+  h4("Count Regular"),
+  textOutput("count"),
+  # Called Environment
+  reactive_count_module_ui("count_module")
+)
+server <- function(input, output, session) {
+  session$onSessionEnded(stopApp)
+  # Calling Environment
+  output$count <- renderText(as.character(input$submit))
+  # Called Environment
+  reactive_count_module_server("count_module", 
+                               action = reactive(input$submit))
+}
+```
+
+
+## Modules
+```{r}
+#| eval: false
+#| code-line-numbers: "5-7|8|10|15"
+reactive_count_module_ui <- function(id){
+  ns <- NS(id)
+  return(
+    tagList(
+      h4("Modulized Count"),
+      textOutput(ns("count_inside")),
+      h4("Is Modulized Count Odd or Even?"),
+      textOutput(ns("odd_even"))
+    ))}
+reactive_count_module_server <- function(id, action) {
+  moduleServer(
+    id,
+    module = function(input, output, session) {
+      output$count_inside <- renderText(as.character(action()))
+      temp_text <- eventReactive(action(), {
+        ifelse(action() %% 2 == 0, return("even"), return("odd"))
+      })
+      output$odd_even <- renderText(temp_text())
+    })}
+```
+:::
+
+

@@ -1,0 +1,7 @@
+title: "Shiny Modules"
+subtitle: "Just the Basics"
+author: "Tod Nestor"
+date: "2023-12-01"
+project:
+  type: website
+  output-dir: docs

@@ -1,0 +1,177 @@
+[
+  {
+    "objectID": "CoP_modules_pres.html",
+    "href": "CoP_modules_pres.html",
+    "title": "Shiny Modules",
+    "section": "",
+    "text": "Presentation Slides: https://tmnestor.github.io/shiny_modules/CoP_modules_pres.html"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#shiny-modules",
+    "href": "CoP_modules_pres.html#shiny-modules",
+    "title": "Shiny Modules",
+    "section": "",
+    "text": "Presentation Slides: https://tmnestor.github.io/shiny_modules/CoP_modules_pres.html"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#why-this-presentation",
+    "href": "CoP_modules_pres.html#why-this-presentation",
+    "title": "Shiny Modules",
+    "section": "Why this presentation?",
+    "text": "Why this presentation?\n\nThe Context: Working in a team on a complex Shiny App and struggling to understand the architecture.\nTeam Meeting Suggestion: Decompose into distinct Modules\n\nsee Engineering Production-Grade Shiny Apps.\n\nConsequence: Give a Presentation."
+  },
+  {
+    "objectID": "CoP_modules_pres.html#what-are-shiny-modules",
+    "href": "CoP_modules_pres.html#what-are-shiny-modules",
+    "title": "Shiny Modules",
+    "section": "What are Shiny Modules?",
+    "text": "What are Shiny Modules?\n\n\n\n\n\n\nleft: a Typical Application Architecture\nmiddle: a Module.\nright: a Modularised Application."
+  },
+  {
+    "objectID": "CoP_modules_pres.html#why-shiny-modules-1-of-2",
+    "href": "CoP_modules_pres.html#why-shiny-modules-1-of-2",
+    "title": "Shiny Modules",
+    "section": "Why Shiny Modules? (1 of 2)",
+    "text": "Why Shiny Modules? (1 of 2)\n\nModules make it easier to develop a complex App because each module can be\n\ndeveloped,\ntested,\nand integrated independently.\n\nModules increase cohesion whilst reducing coupling, so are easier to\n\nunderstand,\nand maintain."
+  },
+  {
+    "objectID": "CoP_modules_pres.html#why-shiny-modules-2-of-2",
+    "href": "CoP_modules_pres.html#why-shiny-modules-2-of-2",
+    "title": "Shiny Modules",
+    "section": "Why Shiny Modules? (2 of 2)",
+    "text": "Why Shiny Modules? (2 of 2)\n\n\nCoupling between units of code refers to the inter-connectedness between them!\nCohesion of a unit of code refers to the degree to which elements within a component work together to fulfill a single, well-defined purpose."
+  },
+  {
+    "objectID": "CoP_modules_pres.html#a-monolithic-shiny-app",
+    "href": "CoP_modules_pres.html#a-monolithic-shiny-app",
+    "title": "Shiny Modules",
+    "section": "A Monolithic Shiny App",
+    "text": "A Monolithic Shiny App\nlibrary(shiny)\n\nui &lt;- fluidPage(\n  selectInput(inputId = \"var\", \"Variable\", names(mtcars)),\n  numericInput(inputId = \"bins\", \"bins\", min = 1, max = 20, value = 10),\n  plotOutput(outputId = \"hist\")\n)\n\nserver &lt;- function(input, output, session) {\n  data &lt;- reactive(mtcars[[input$var]])\n  output$hist &lt;- renderPlot({\n    hist(data(), breaks = input$bins, main = input$var)\n  }, res = 96)\n}\n\nshinyApp(ui = ui, server = server)"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#modularized-ui",
+    "href": "CoP_modules_pres.html#modularized-ui",
+    "title": "Shiny Modules",
+    "section": "Modularized UI",
+    "text": "Modularized UI\nThe Main UI function\nui &lt;- fluidPage(\n  selectInput(\"var\", \"Variable\", names(mtcars)),\n  numericInput(\"bins\", \"bins\", min = 1, max = 20, value = 10),\n  plotOutput(\"hist\")\n)"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#modularized-ui-1",
+    "href": "CoP_modules_pres.html#modularized-ui-1",
+    "title": "Shiny Modules",
+    "section": "Modularized UI",
+    "text": "Modularized UI\nIs replaced by\nui &lt;- fluidPage(\n  MTCars_Histo_UI(\"cars\")\n)"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#the-ui-module",
+    "href": "CoP_modules_pres.html#the-ui-module",
+    "title": "Shiny Modules",
+    "section": "The UI Module",
+    "text": "The UI Module\nMTCars_Histo_UI &lt;- function(id) {\n  ns &lt;- NS(id)\n  # enter code to contruct and monitor UI control\n  tagList(\n  selectInput(ns(\"var\"), \"Variable\", names(mtcars)),\n  numericInput(ns(\"bins\"), \"bins\", min = 1, max = 20, value = 10),\n  plotOutput(ns(\"hist\"))\n  )\n}"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#modularized-server",
+    "href": "CoP_modules_pres.html#modularized-server",
+    "title": "Shiny Modules",
+    "section": "Modularized Server",
+    "text": "Modularized Server\nThe Main Server function\nserver &lt;- function(input, output, session) {\n  data &lt;- reactive(mtcars[[input$var]])\n  output$hist &lt;- renderPlot({\n    hist(data(), breaks = input$bins, main = input$var)\n  }, res = 96)\n}"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#modularized-server-1",
+    "href": "CoP_modules_pres.html#modularized-server-1",
+    "title": "Shiny Modules",
+    "section": "Modularized Server",
+    "text": "Modularized Server\nIs replaced by\nserver &lt;- function(input, output, session) {\n  MTCars_Histo_Server(\"cars\")\n}"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#the-server-module",
+    "href": "CoP_modules_pres.html#the-server-module",
+    "title": "Shiny Modules",
+    "section": "The Server Module",
+    "text": "The Server Module\nThe Server Module is\nMTCars_Histo_Server &lt;- function(id) {\n  moduleServer(\n    id,\n    module = function(input, output, session) {\n      # code to return a response when an associated UI control changes\n      data &lt;- reactive(mtcars[[input$var]])\n      output$hist &lt;- renderPlot({\n        hist(data(), breaks = input$bins, main = input$var)\n      }, res = 96)\n    }\n  )\n}"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#the-modularized-app",
+    "href": "CoP_modules_pres.html#the-modularized-app",
+    "title": "Shiny Modules",
+    "section": "The Modularized App",
+    "text": "The Modularized App\nThe Modularised App is now:\nMTCars_Histo_App &lt;- function() {\n  #source file with MTCars_Histo_UI and MTCars_Histo_Server components\n  source(\"mod-MTCars_Histo.R\")\n  \n  ui &lt;- fluidPage(\n    MTCars_Histo_UI(\"cars\")\n  )\n  \n  server &lt;- function(input, output, session) {\n    MTCars_Histo_Server(\"cars\")\n  }\n  \n  shinyApp(ui = ui, server = server)\n}\n\nMTCars_Histo_App()"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#namespacing-is-crucial-and-simple",
+    "href": "CoP_modules_pres.html#namespacing-is-crucial-and-simple",
+    "title": "Shiny Modules",
+    "section": "Namespacing is crucial, and simple!",
+    "text": "Namespacing is crucial, and simple!\n\nns &lt;- shiny::NS(\"cars\")\nns(\"var\")\n\n[1] \"cars-var\"\n\n\n\n\n\n\n\n\nName Space Dramas\n\n\n\nWhen UI controls don’t work, check if you have name spaced their UI ids"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#passing-information-1",
+    "href": "CoP_modules_pres.html#passing-information-1",
+    "title": "Shiny Modules",
+    "section": "Passing Information (1)",
+    "text": "Passing Information (1)"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#multi-modular-app-functional",
+    "href": "CoP_modules_pres.html#multi-modular-app-functional",
+    "title": "Shiny Modules",
+    "section": "Multi-Modular App (Functional)",
+    "text": "Multi-Modular App (Functional)\n\nMainDataPlot\n\n\nMulti_MTCars_Histo_App &lt;- function() {\nlapply(c(\"shiny\", \"zeallot\"), require, character.only = TRUE)\nlist.files (path = \"modules\", full.name = TRUE) |&gt; lapply(\\(x) source(x))\n\nui &lt;- fluidPage(\n  dataUI(\"dat\"),\n  plotUI(\"pl\") \n)\n\nserver &lt;- function(input, output, session) {\n  c(data, title) %&lt;-% dataServer(\"dat\")\n  plotServer(\"pl\", data, title)\n}\n\nshinyApp(ui = ui, server = server)\n}\nMulti_MTCars_Histo_App()\n\nThesis: understandability and maintainability is further enhanced.\n\n\n\ndataUI &lt;- function(id) {\n  ns &lt;- NS(id)\n  tagList(\n    selectInput(inputId = ns(\"var\"), \"Variable\", names(mtcars))\n  )\n}\n\ndataServer &lt;- function(id) {\n  moduleServer(\n    id,\n    function(input, output, session) {\n      return(\n        list(\"data\" = reactive(mtcars[[input$var]]), \n             \"title\" = reactive(as.character(input$var)))\n      )\n    }\n  )\n}\n\n\nplotUI &lt;- function(id) {\n  ns &lt;- NS(id)\n  tagList(\n    numericInput(inputId = ns(\"bins\"), \"bins\", min = 1, max = 20, value = 10),\n    plotOutput(outputId = ns(\"hist\"))\n  )\n}\n\nplotServer &lt;- function(id, data, title) {\n  moduleServer(\n    id,\n    module = function(input, output, session) {\n      output$hist &lt;- renderPlot({\n        hist(data(), #reactive from calling env\n             main = title(), #reactive from calling env\n             breaks = input$bins #reactive from UI\n        )\n      }, res = 96)\n    }\n  )\n}"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#passing-reactive-values-between-modules",
+    "href": "CoP_modules_pres.html#passing-reactive-values-between-modules",
+    "title": "Shiny Modules",
+    "section": "Passing Reactive Values Between Modules",
+    "text": "Passing Reactive Values Between Modules\n\n\n\n\n\n\nPassing Data\n\n\n\n\nwithin a module’s server function, code must rely only on objects in its own UI or on objects that are explicitly passed into the that server function as additional arguments.\nany objects created within a producer module that are needed in another consumer module, must be returned as reactive expressions, captured by a variable assignment, and then passed into the consuming module, where they will be invoked as a function call.\n\n\n\n\nsee:\n\nCommunication between modules\nUsing global input values inside of R Shiny modules"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#r6-encapsulated-oo-method",
+    "href": "CoP_modules_pres.html#r6-encapsulated-oo-method",
+    "title": "Shiny Modules",
+    "section": "R6 Encapsulated OO Method",
+    "text": "R6 Encapsulated OO Method\n\n\n\n\n\n\nmanage access to App data with reactive R6 classes\n\nvid.: Pass around data between Shiny modules with R6"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#passing-variables-oo",
+    "href": "CoP_modules_pres.html#passing-variables-oo",
+    "title": "Shiny Modules",
+    "section": "Passing Variables (OO)",
+    "text": "Passing Variables (OO)\n\nMainManagerDataPlot\n\n\n\nui &lt;- fluidPage(\n  dataUI(\"dat\"),\n  plotUI(\"pl\") \n)\n\nserver &lt;- function(input, output, session) {\n  R6_data &lt;- dataManager$new()\n  dataServer(\"dat\", R6_data)\n  plotServer(\"pl\", R6_data)\n}\n\n\n\n\ndataManager &lt;- R6::R6Class(classname = \"dataManager\",\n  public = list(\n    triggers = reactiveValues(plot = 0),\n    trigger_plot = function(){\n      self$triggers$plot &lt;- self$triggers$plot + 1},\n    set_x = function(x) {\n      private$x = as.character(x)},\n    set_data = function(data) {\n      private$data = as.numeric(data)},\n    get_x = function(x) {\n      private$x},\n    get_data = function(data) {\n      private$data}),\n  private = list (x = NULL,data = NULL)\n)\n\n\n\n\ndataUI &lt;- function(id) {\n  ns &lt;- NS(id)\n  tagList(\n    selectInput(inputId = ns(\"var\"), \"Variable\", names(mtcars))\n  )\n}\ndataServer &lt;- function(id, dataManager) {\n  moduleServer(\n    id,\n    function(input, output, session) {\n      observeEvent(input$var, {\n      dataManager$set_data(mtcars[[input$var]])\n      dataManager$set_x(input$var)\n      dataManager$trigger_plot()\n      })\n    })}\n\n\n\n\nplotUI &lt;- function(id) {\n  ns &lt;- NS(id)\n  tagList(\n    numericInput(inputId = ns(\"bins\"), \"bins\", min = 1, max = 20, value = 10),\n    plotOutput(outputId = ns(\"hist\"))\n  )}\nplotServer &lt;- function(id, dataManager) {\n  moduleServer(\n    id,\n    module = function(input, output, session) {\n      output$hist &lt;- renderPlot({\n        dataManager$triggers$plot\n        hist(dataManager$get_data(), \n             breaks = input$bins, \n             main = dataManager$get_x())\n      }, res = 96)\n    })}"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#modular-testing",
+    "href": "CoP_modules_pres.html#modular-testing",
+    "title": "Shiny Modules",
+    "section": "Modular Testing",
+    "text": "Modular Testing\n\nModuleTest Harness\n\n\n\n# UI module ----\nbootstrap_ui &lt;- function(id) {\n  fluidRow(\n    textOutput(NS(id, \"bss\"))\n  )\n}\n# server module ----\nbootstrap_server &lt;- function(id, df) {\n  moduleServer(id, function(input, output, session) {\n    bss_mean &lt;- reactive({as.character(mean(df()[[\"x\"]]))})\n    output$bss &lt;- renderText({\n      paste(\"The bootstrap sample mean is\", bss_mean())\n    })\n  })\n}\n\n\n\n\ntest_demo &lt;- function() {\n  boot_strap_sample &lt;- data.frame(x = sample(x = 1:10, \n                                             replace = TRUE, \n                                             size  = 20))\n  ui &lt;- fluidPage(bootstrap_ui(\"x\"))\n  server &lt;- function(input, output, session) {\n    session$onSessionEnded(stopApp)\n    bootstrap_server(\"x\", reactive({boot_strap_sample}))\n  }\n  shinyApp(ui, server)\n}\n\n# test_demo()"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#presentation-summary",
+    "href": "CoP_modules_pres.html#presentation-summary",
+    "title": "Shiny Modules",
+    "section": "Presentation Summary",
+    "text": "Presentation Summary\n\nModules only realise their benefits at scale, where they make it easier to:\n\ndevelop and\nmaintain complex Apps.\n\nHowever, Modular Apps create multiple name spaces and environments:\n\nmaking it more challenging to pass information between the modules.\n\nvid. A beginner’s guide to Shiny modules"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#references",
+    "href": "CoP_modules_pres.html#references",
+    "title": "Shiny Modules",
+    "section": "References",
+    "text": "References\n\nA beginner’s guide to Shiny modules\nCommunication between modules\nEngineering Production-Grade Shiny Apps\nModularizing Shiny app code\nPass around data between Shiny modules with R6\nPresentation Slides\nShiny Modules\nUsing global input values inside of R Shiny modules"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#appendix-a-a-multi-module-example",
+    "href": "CoP_modules_pres.html#appendix-a-a-multi-module-example",
+    "title": "Shiny Modules",
+    "section": "Appendix A: A multi-module example",
+    "text": "Appendix A: A multi-module example\n\nsetwd(here)\nsource(\"./app5.R\")\nshinyApp(ui, server)"
+  },
+  {
+    "objectID": "CoP_modules_pres.html#appendix-bfunctional",
+    "href": "CoP_modules_pres.html#appendix-bfunctional",
+    "title": "Shiny Modules",
+    "section": "Appendix B:Functional",
+    "text": "Appendix B:Functional\n\nAppModules\n\n\n\nui &lt;- fluidPage(\n  # Calling Environment\n  actionButton(\"submit\", \"Press me\"),\n  h4(\"Count Regular\"),\n  textOutput(\"count\"),\n  # Called Environment\n  reactive_count_module_ui(\"count_module\")\n)\nserver &lt;- function(input, output, session) {\n  session$onSessionEnded(stopApp)\n  # Calling Environment\n  output$count &lt;- renderText(as.character(input$submit))\n  # Called Environment\n  reactive_count_module_server(\"count_module\", \n                               action = reactive(input$submit))\n}\n\n\n\n\nreactive_count_module_ui &lt;- function(id){\n  ns &lt;- NS(id)\n  return(\n    tagList(\n      h4(\"Modulized Count\"),\n      textOutput(ns(\"count_inside\")),\n      h4(\"Is Modulized Count Odd or Even?\"),\n      textOutput(ns(\"odd_even\"))\n    ))}\nreactive_count_module_server &lt;- function(id, action) {\n  moduleServer(\n    id,\n    module = function(input, output, session) {\n      output$count_inside &lt;- renderText(as.character(action()))\n      temp_text &lt;- eventReactive(action(), {\n        ifelse(action() %% 2 == 0, return(\"even\"), return(\"odd\"))\n      })\n      output$odd_even &lt;- renderText(temp_text())\n    })}"
+  }
+]
